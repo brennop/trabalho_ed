@@ -30,18 +30,21 @@ typedef struct _lista {
 } lista;
 
 void inserirFinal(lista *LISTA, void *tad);
+void iterarLista(lista *LISTA, void (*f)(item *));
+item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *));
+void removerItem(lista *LISTA, item *ITEM);
 
 lista *lerLista();
 void salvarLista(lista *LISTA);
-item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *));
-void removerItem(lista *LISTA, item *ITEM);
 void mostrarLista(lista *LISTA);
 
 lista *processarDisciplinas(lista *LISTA);
 void listarDisciplinas(lista *LISTA);   /* 1 */
 void adicionarDisciplina(lista *LISTA); /* 2 */
 void removerDisciplina(lista *LISTA);   /* 3 */
-void adicionarAluno(lista *LISTA);
+void semDisciplina(lista *LISTA); /* 4 */
+void adicionarAluno(lista *LISTA); /* 5 */
+void removerAluno(lista *LISTA); /* 5 */
 
 int main() {
   // ler arquivo
@@ -83,6 +86,9 @@ int main() {
     case 5:
       adicionarAluno(alunos);
       break;
+    case 6:
+      removerAluno(alunos);
+      break;
     case 9:
       salvarLista(alunos);
       break;
@@ -102,6 +108,14 @@ void inserirFinal(lista *LISTA, void *tad) {
     LISTA->final->prox = i;
   }
   LISTA->final = i;
+}
+
+void iterarLista(lista *LISTA, void (*f)(item *)) {
+  item *atual = LISTA->inicio;
+  while (atual) {
+    (*f)(atual);
+    atual = atual->prox;
+  }
 }
 
 // Lê do arquivo como binário
@@ -136,13 +150,13 @@ void salvarLista(lista *LISTA) {
   fclose(arquivo);
 }
 
+void mostrarAluno(item *i) {
+  aluno *a = i->atual;
+  printf("%s %d %s\n", a->nome, a->matricula, a->curso);
+}
+
 void mostrarLista(lista *LISTA) {
-  item *atual = LISTA->inicio;
-  while (atual) {
-    aluno *a = atual->atual;
-    printf("%s %d %s\n", a->nome, a->matricula, a->curso);
-    atual = atual->prox;
-  }
+  iterarLista(LISTA, mostrarAluno);
 }
 
 item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *)) {
@@ -234,6 +248,15 @@ void removerDisciplina(lista *LISTA) {
   }
 }
 
+void mostrarAlunoSemDisciplina (item *i) {
+  aluno *a = i->atual;
+  if(a->disciplina[0] == '\0' ) printf("%s %d %s\n", a->nome, a->matricula, a->curso);
+}
+
+void semDisciplina(lista *LISTA) {
+  iterarLista(LISTA, mostrarAlunoSemDisciplina);
+}
+
 void adicionarAluno(lista *LISTA) {
   aluno *novo = (aluno *)malloc(sizeof(aluno));
 
@@ -246,4 +269,23 @@ void adicionarAluno(lista *LISTA) {
   scanf("%s", novo->curso);
 
   inserirFinal(LISTA, novo);
+}
+
+int buscarMatricula(item *i, void * chave) {
+  aluno *a = i->atual;
+  return a->matricula == *(int*) chave;
+}
+
+void removerAluno(lista *LISTA) {
+  int matricula;
+  printf("Remover aluno:\n");
+  printf("Matrícula: ");
+  scanf("%d", &matricula);
+  item *i = buscarItem(LISTA, &matricula, buscarMatricula);
+  if(i) {
+    removerItem(LISTA, i);
+    free(i);
+  } else {
+    printf("Matrícula não encontrada\n");
+  }
 }
