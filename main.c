@@ -19,32 +19,36 @@ typedef struct {
   int alunos;
 } disciplina;
 
+/* item de uma lista */
 typedef struct _item {
   void *atual;
   void *prox;
 } item;
 
+/* struct de lista simplesmente encadeada */
 typedef struct _lista {
   item *inicio;
   item *final;
 } lista;
 
-void inserirFinal(lista *LISTA, void *tad);
-void iterarLista(lista *LISTA, void (*f)(item *));
-item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *));
-void removerItem(lista *LISTA, item *ITEM);
+/* funções helpers para manipular listas */
+void inserirFinal(lista *LISTA, void *tad); /* insere tad no final de LISTA */
+void iterarLista(lista *LISTA, void (*f)(item *)); /* aplica (*f) em cada item da lista */
+item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *)); /* busca chave em LISTA baseado em (*f) */
+void removerItem(lista *LISTA, item *ITEM); /* remove ITEM de LISTA */
 
+/* funções para manipular o arquivo.txt */
 lista *lerLista();
 void salvarLista(lista *LISTA);
 void mostrarLista(lista *LISTA);
-
 lista *processarDisciplinas(lista *LISTA);
+
 void listarDisciplinas(lista *LISTA);   /* 1 */
 void adicionarDisciplina(lista *LISTA); /* 2 */
 void removerDisciplina(lista *LISTA);   /* 3 */
 void semDisciplina(lista *LISTA); /* 4 */
 void adicionarAluno(lista *LISTA); /* 5 */
-void removerAluno(lista *LISTA); /* 5 */
+void removerAluno(lista *LISTA); /* 6 */
 
 int main() {
   // ler arquivo
