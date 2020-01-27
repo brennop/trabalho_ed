@@ -33,8 +33,11 @@ typedef struct _lista {
 
 /* funções helpers para manipular listas */
 void inserirFinal(lista *LISTA, void *tad); /* insere tad no final de LISTA */
-void iterarLista(lista *LISTA, void (*f)(item *)); /* aplica (*f) em cada item da lista */
-item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *)); /* busca chave em LISTA baseado em (*f) */
+void iterarLista(lista *LISTA,
+                 void (*f)(item *)); /* aplica (*f) em cada item da lista */
+item *buscarItem(lista *LISTA, void *chave,
+                 int (*f)(item *,
+                          void *)); /* busca chave em LISTA baseado em (*f) */
 void removerItem(lista *LISTA, item *ITEM); /* remove ITEM de LISTA */
 
 /* funções para manipular o arquivo.txt */
@@ -43,12 +46,13 @@ void salvarLista(lista *LISTA);
 void mostrarLista(lista *LISTA);
 lista *processarDisciplinas(lista *LISTA);
 
-void listarDisciplinas(lista *LISTA);   /* 1 */
-void adicionarDisciplina(lista *LISTA); /* 2 */
-void removerDisciplina(lista *LISTA);   /* 3 */
-void semDisciplina(lista *LISTA); /* 4 */
-void adicionarAluno(lista *LISTA); /* 5 */
-void removerAluno(lista *LISTA); /* 6 */
+void listarDisciplinas(lista *LISTA);                 /* 1 */
+void adicionarDisciplina(lista *LISTA);               /* 2 */
+void removerDisciplina(lista *LISTA);                 /* 3 */
+void semDisciplina(lista *LISTA);                     /* 4 */
+void adicionarAluno(lista *LISTA);                    /* 5 */
+void removerAluno(lista *LISTA);                      /* 6 */
+void incluirAluno(lista *alunos, lista *disciplinas); /* 7 */
 
 int main() {
   // ler arquivo
@@ -93,6 +97,10 @@ int main() {
     case 6:
       removerAluno(alunos);
       break;
+    case 7:
+      incluirAluno(alunos, disciplinas);
+      break;
+    case 8:
     case 9:
       salvarLista(alunos);
       break;
@@ -156,12 +164,10 @@ void salvarLista(lista *LISTA) {
 
 void mostrarAluno(item *i) {
   aluno *a = i->atual;
-  printf("%s %d %s\n", a->nome, a->matricula, a->curso);
+  printf("%s %d %s %s\n", a->nome, a->matricula, a->curso, a->disciplina);
 }
 
-void mostrarLista(lista *LISTA) {
-  iterarLista(LISTA, mostrarAluno);
-}
+void mostrarLista(lista *LISTA) { iterarLista(LISTA, mostrarAluno); }
 
 item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *)) {
   item *atual = LISTA->inicio;
@@ -252,9 +258,10 @@ void removerDisciplina(lista *LISTA) {
   }
 }
 
-void mostrarAlunoSemDisciplina (item *i) {
+void mostrarAlunoSemDisciplina(item *i) {
   aluno *a = i->atual;
-  if(a->disciplina[0] == '\0' ) printf("%s %d %s\n", a->nome, a->matricula, a->curso);
+  if (a->disciplina[0] == '\0')
+    printf("%s %d %s\n", a->nome, a->matricula, a->curso);
 }
 
 void semDisciplina(lista *LISTA) {
@@ -275,9 +282,9 @@ void adicionarAluno(lista *LISTA) {
   inserirFinal(LISTA, novo);
 }
 
-int buscarMatricula(item *i, void * chave) {
+int buscarMatricula(item *i, void *chave) {
   aluno *a = i->atual;
-  return a->matricula == *(int*) chave;
+  return a->matricula == *(int *)chave;
 }
 
 void removerAluno(lista *LISTA) {
@@ -286,10 +293,33 @@ void removerAluno(lista *LISTA) {
   printf("Matrícula: ");
   scanf("%d", &matricula);
   item *i = buscarItem(LISTA, &matricula, buscarMatricula);
-  if(i) {
+  if (i) {
     removerItem(LISTA, i);
     free(i);
   } else {
     printf("Matrícula não encontrada\n");
+  }
+}
+
+void incluirAluno(lista *alunos, lista *disciplinas) {
+  int matricula;
+  char sigla[4];
+
+  printf("Incluir aluno:\n");
+  printf("Matrícula: ");
+  scanf("%d", &matricula);
+  item *itemAluno = buscarItem(alunos, &matricula, buscarMatricula);
+  if (itemAluno == NULL) {
+    printf("Matrícula não encontrada\n");
+    return;
+  }
+  printf("Disciplina: ");
+  scanf("%s", sigla);
+
+  if (buscarItem(disciplinas, sigla, buscarDisciplina)) {
+    aluno *a = itemAluno->atual;
+    strcpy(a->disciplina, sigla);
+  } else {
+    printf("Disciplina não encontrada\n");
   }
 }
