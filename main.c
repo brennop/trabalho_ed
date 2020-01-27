@@ -33,14 +33,19 @@ void inserirFinal(lista *LISTA, void *tad);
 
 lista *lerLista();
 void salvarLista(lista *LISTA);
+item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *));
 void mostrarLista(lista *LISTA);
 
+lista *processarDisciplinas(lista *LISTA);
+void listarDisciplinas(lista *LISTA);   /* 1 */
+void adicionarDisciplina(lista *LISTA); /* 2 */
 void adicionarAluno(lista *LISTA);
 
 int main() {
   // ler arquivo
   int option = 0;
   lista *alunos = lerLista();
+  lista *disciplinas = processarDisciplinas(alunos);
 
   while (option != 10) {
     printf("Olá Professor, \n");
@@ -64,6 +69,12 @@ int main() {
     case 0:
       mostrarLista(alunos);
       break;
+    case 1:
+      listarDisciplinas(disciplinas);
+      break;
+    case 2:
+      adicionarDisciplina(disciplinas);
+      break;
     case 5:
       adicionarAluno(alunos);
       break;
@@ -78,6 +89,7 @@ int main() {
 void inserirFinal(lista *LISTA, void *tad) {
   item *i = (item *)malloc(sizeof(item));
   i->atual = tad;
+  i->prox = NULL;
 
   if (LISTA->inicio == NULL) { // Lista vazia
     LISTA->inicio = i;
@@ -125,6 +137,70 @@ void mostrarLista(lista *LISTA) {
     aluno *a = atual->atual;
     printf("%s %d %s\n", a->nome, a->matricula, a->curso);
     atual = atual->prox;
+  }
+}
+
+item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *)) {
+  item *atual = LISTA->inicio;
+  while (atual) {
+    if ((*f)(atual, chave))
+      return atual;
+    atual = atual->prox;
+  }
+  return NULL;
+}
+
+int buscarDisciplina(item *i, void *chave) {
+  disciplina *d = i->atual;
+  return strcmp(d->nome, (char *)chave) == 0;
+}
+
+// Lê as disciplinas do arquivo
+lista *processarDisciplinas(lista *LISTA) {
+  lista *disciplinas =
+      (lista *)malloc(sizeof(lista)); /* Aloca a lista de disciplinas */
+  disciplinas->inicio = NULL;         /* Garante que o início é NULL */
+
+  item *atual = LISTA->inicio;
+  while (atual) {
+    aluno *a = atual->atual;
+    if (a->disciplina != NULL) {
+      item *i = buscarItem(LISTA, a->disciplina, buscarDisciplina);
+      if (i) {
+        disciplina *d = i->atual;
+        d->alunos++;
+      } else {
+        disciplina *d = (disciplina *)malloc(sizeof(disciplina));
+        strcpy(d->nome, a->disciplina);
+        inserirFinal(disciplinas, d);
+      }
+    }
+    atual = atual->prox;
+  }
+  return disciplinas;
+}
+
+void listarDisciplinas(lista *disciplinas) {
+  item *atual = disciplinas->inicio;
+  while (atual) {
+    disciplina *d = atual->atual;
+    printf("%s %d\n", d->nome, d->alunos);
+    atual = atual->prox;
+  }
+}
+
+void adicionarDisciplina(lista *LISTA) {
+  char sigla[4];
+  printf("Adicionar disciplina\n");
+  printf("Digite a sigla: \n");
+  scanf("%s", sigla);
+  if (buscarItem(LISTA, sigla, buscarDisciplina)) {
+    printf("Disciplina já existente");
+  } else {
+    disciplina *d = (disciplina *)malloc(sizeof(disciplina));
+    strcpy(d->nome, sigla);
+    d->alunos = 0;
+    inserirFinal(LISTA, d);
   }
 }
 
