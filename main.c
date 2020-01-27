@@ -34,11 +34,13 @@ void inserirFinal(lista *LISTA, void *tad);
 lista *lerLista();
 void salvarLista(lista *LISTA);
 item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *));
+void removerItem(lista *LISTA, item *ITEM);
 void mostrarLista(lista *LISTA);
 
 lista *processarDisciplinas(lista *LISTA);
 void listarDisciplinas(lista *LISTA);   /* 1 */
 void adicionarDisciplina(lista *LISTA); /* 2 */
+void removerDisciplina(lista *LISTA);   /* 3 */
 void adicionarAluno(lista *LISTA);
 
 int main() {
@@ -74,6 +76,9 @@ int main() {
       break;
     case 2:
       adicionarDisciplina(disciplinas);
+      break;
+    case 3:
+      removerDisciplina(disciplinas);
       break;
     case 5:
       adicionarAluno(alunos);
@@ -150,6 +155,17 @@ item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *)) {
   return NULL;
 }
 
+void removerItem(lista *LISTA, item *ITEM) {
+  item *anterior = LISTA->inicio;
+  while (anterior->prox) {
+    if (anterior->prox == ITEM) {
+      anterior->prox = ITEM->prox;
+      return;
+    }
+    anterior = anterior->prox;
+  }
+}
+
 int buscarDisciplina(item *i, void *chave) {
   disciplina *d = i->atual;
   return strcmp(d->nome, (char *)chave) == 0;
@@ -192,15 +208,29 @@ void listarDisciplinas(lista *disciplinas) {
 void adicionarDisciplina(lista *LISTA) {
   char sigla[4];
   printf("Adicionar disciplina\n");
-  printf("Digite a sigla: \n");
+  printf("Digite a sigla: ");
   scanf("%s", sigla);
   if (buscarItem(LISTA, sigla, buscarDisciplina)) {
-    printf("Disciplina já existente");
+    printf("Disciplina já existente\n");
   } else {
     disciplina *d = (disciplina *)malloc(sizeof(disciplina));
     strcpy(d->nome, sigla);
     d->alunos = 0;
     inserirFinal(LISTA, d);
+  }
+}
+
+void removerDisciplina(lista *LISTA) {
+  char sigla[4];
+  printf("Adicionar disciplina\n");
+  printf("Digite a sigla: ");
+  scanf("%s", sigla);
+  item *i = buscarItem(LISTA, sigla, buscarDisciplina);
+  if (i) {
+    removerItem(LISTA, i);
+    free(i);
+  } else {
+    printf("Disciplina não existente\n");
   }
 }
 
