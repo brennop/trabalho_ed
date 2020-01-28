@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define enter()                                                                \
+  while (getchar() != '\n')                                                    \
+    ;                                                                          \
+  getchar();
+
 // TAD do aluno
 typedef struct _aluno {
   char nome[50];
@@ -70,7 +75,8 @@ int main() {
   lista *alunos = lerLista();
   lista *disciplinas = processarDisciplinas(alunos);
 
-  while (option != 10) {
+  for(;;) {
+    system("clear");
     printf("Olá Professor, \n");
     printf("<X> alunos não estão matriculados. \n");
     printf("O que deseja fazer: \n");
@@ -86,7 +92,6 @@ int main() {
     printf("10 Sair \n");
     printf("Digite a opção: ");
     scanf("%d", &option);
-    system("clear");
 
     switch (option) {
     case 0: mostrarLista(alunos); break;
@@ -98,9 +103,10 @@ int main() {
     case 7: incluirAluno(alunos, disciplinas); break;
     case 8: gerenciarDisciplina(disciplinas, alunos); break;
     case 9: salvarLista(alunos); break;
+    case 10: return 0;
     }
+    enter(); // TODO: Melhor usabilidade
   }
-  return 0;
 }
 
 void inserirFinal(lista *LISTA, void *tad) {
@@ -198,14 +204,15 @@ lista *processarDisciplinas(lista *LISTA) {
   item *atual = LISTA->inicio;
   while (atual) {
     aluno *a = atual->atual;
-    if (a->disciplina != NULL) {
-      item *i = buscarItem(LISTA, a->disciplina, buscarDisciplina);
+    if (*a->disciplina != '\0') {
+      item *i = buscarItem(disciplinas, a->disciplina, buscarDisciplina);
       if (i) {
         disciplina *d = i->atual;
         d->alunos++;
       } else {
         disciplina *d = (disciplina *)malloc(sizeof(disciplina));
         strcpy(d->nome, a->disciplina);
+        d->alunos = 1;
         inserirFinal(disciplinas, d);
       }
     }
@@ -338,7 +345,7 @@ void gerenciarDisciplina(lista *disciplinas, lista *alunos) {
 
 void menuDisciplina(disciplina *d, lista *alunos) {
   int opcao = -1;
-  while (opcao != 6) {
+  for (;;) {
     system("clear");
     printf("\
 Gerenciando disciplina %s\n\
@@ -358,6 +365,7 @@ Escolha uma opção: ",
     case 2: removerAlunoDisciplina(d, alunos); break;
     case 3: atribuirNota(d, alunos); break;
     case 4: atribuirFaltas(d, alunos); break;
+    case 6: return;
     }
   }
 }
@@ -370,14 +378,12 @@ void listarAlunos(disciplina *d, lista *alunos) {
   while (atual) {
     aluno *a = atual->atual;
     if (strcmp(d->nome, a->disciplina) == 0)
-      printf("%d\t%s\t%d\%\t%.2f\t%s\n", a->matricula, a->nome,
-             (int)a->faltas, a->nota, a->mencao);
+      printf("%d\t%s\t%d\%\t%.2f\t%s\n", a->matricula, a->nome, (int)a->faltas,
+             a->nota, a->mencao);
     atual = atual->prox;
   }
   printf("Pressione enter para voltar.\n");
-  do
-    getchar();
-  while (getchar() != '\n');
+  enter();
 }
 
 void removerAlunoDisciplina(disciplina *d, lista *alunos) {
