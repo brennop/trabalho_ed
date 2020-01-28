@@ -59,7 +59,10 @@ void gerenciarDisciplina(lista *disciplinas, lista *alunos); /* 8 */
 
 void menuDisciplina(disciplina *d, lista *alunos);
 
-void listarAlunos(disciplina *d, lista *alunos);
+void listarAlunos(disciplina *d, lista *alunos);           /* 1 */
+void removerAlunoDisciplina(disciplina *d, lista *alunos); /* 2 */
+void atribuirNota(disciplina *d, lista *alunos);           /* 3 */
+void atribuirFaltas(disciplina *d, lista *alunos);         /* 4 */
 
 int main() {
   // ler arquivo
@@ -270,6 +273,11 @@ void adicionarAluno(lista *LISTA) {
   printf("Curso: ");
   scanf("%s", novo->curso);
 
+  /* inicializa os valores restantes para não serem
+   * prenchidos com lixo */
+  *novo->disciplina = *novo->mencao = '\0';
+  novo->faltas = novo->nota = 0;
+
   inserirFinal(LISTA, novo);
 }
 
@@ -346,12 +354,10 @@ Escolha uma opção: ",
            d->nome, d->alunos);
     scanf("%d", &opcao);
     switch (opcao) {
-    case 1:
-      listarAlunos(d, alunos);
-      /* case 2: */
-      /* case 3: */
-      /* case 4: */
-      /* case 5: */
+    case 1: listarAlunos(d, alunos); break;
+    case 2: removerAlunoDisciplina(d, alunos); break;
+    case 3: atribuirNota(d, alunos); break;
+    case 4: atribuirFaltas(d, alunos); break;
     }
   }
 }
@@ -365,9 +371,60 @@ void listarAlunos(disciplina *d, lista *alunos) {
     aluno *a = atual->atual;
     if (strcmp(d->nome, a->disciplina) == 0)
       printf("%d\t%s\t%d\%\t%.2f\t%s\n", a->matricula, a->nome,
-             (int)a->faltas * 100, a->nota, a->mencao);
+             (int)a->faltas, a->nota, a->mencao);
     atual = atual->prox;
   }
   printf("Pressione enter para voltar.\n");
-  do getchar(); while (getchar() != '\n');
+  do
+    getchar();
+  while (getchar() != '\n');
+}
+
+void removerAlunoDisciplina(disciplina *d, lista *alunos) {
+  int matricula;
+  printf("Digite a matrícula do aluno a ser removido de %s\n", d->nome);
+  printf("Matricula: ");
+  scanf("%d", &matricula);
+
+  item *i = buscarItem(alunos, &matricula, buscarMatricula);
+  if (i) {
+    aluno *a = i->atual;
+    if (strcmp(a->disciplina, d->nome) == 0)
+      *a->disciplina = '\0';
+  } else
+    printf("Matrícula não encontrada\n");
+}
+
+void atribuirNota(disciplina *d, lista *alunos) {
+  int matricula;
+
+  printf("Atribuir nota a aluno de %s\n", d->nome);
+  printf("Matricula: ");
+  scanf("%d", &matricula);
+  item *i = buscarItem(alunos, &matricula, buscarMatricula);
+  if (i == NULL) {
+    printf("Matrícula não encontrada\n");
+    return;
+  }
+  aluno *a = i->atual;
+
+  printf("Nota: ");
+  scanf("%f", &a->nota);
+}
+
+void atribuirFaltas(disciplina *d, lista *alunos) {
+  int matricula;
+
+  printf("Atribuir faltas a aluno de %s\n", d->nome);
+  printf("Matricula: ");
+  scanf("%d", &matricula);
+  item *i = buscarItem(alunos, &matricula, buscarMatricula);
+  if (i == NULL) {
+    printf("Matrícula não encontrada\n");
+    return;
+  }
+  aluno *a = i->atual;
+
+  printf("Faltas (%): ");
+  scanf("%f", &a->faltas);
 }
