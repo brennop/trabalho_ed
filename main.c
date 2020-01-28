@@ -48,13 +48,18 @@ void salvarLista(lista *LISTA);
 void mostrarLista(lista *LISTA);
 lista *processarDisciplinas(lista *LISTA);
 
-void listarDisciplinas(lista *LISTA);                 /* 1 */
-void adicionarDisciplina(lista *LISTA);               /* 2 */
-void removerDisciplina(lista *LISTA);                 /* 3 */
-void semDisciplina(lista *LISTA);                     /* 4 */
-void adicionarAluno(lista *LISTA);                    /* 5 */
-void removerAluno(lista *LISTA);                      /* 6 */
-void incluirAluno(lista *alunos, lista *disciplinas); /* 7 */
+void listarDisciplinas(lista *LISTA);                        /* 1 */
+void adicionarDisciplina(lista *LISTA);                      /* 2 */
+void removerDisciplina(lista *LISTA);                        /* 3 */
+void semDisciplina(lista *LISTA);                            /* 4 */
+void adicionarAluno(lista *LISTA);                           /* 5 */
+void removerAluno(lista *LISTA);                             /* 6 */
+void incluirAluno(lista *alunos, lista *disciplinas);        /* 7 */
+void gerenciarDisciplina(lista *disciplinas, lista *alunos); /* 8 */
+
+void menuDisciplina(disciplina *d, lista *alunos);
+
+void listarAlunos(disciplina *d, lista *alunos);
 
 int main() {
   // ler arquivo
@@ -88,7 +93,7 @@ int main() {
     case 5: adicionarAluno(alunos); break;
     case 6: removerAluno(alunos); break;
     case 7: incluirAluno(alunos, disciplinas); break;
-    case 8:
+    case 8: gerenciarDisciplina(disciplinas, alunos); break;
     case 9: salvarLista(alunos); break;
     }
   }
@@ -302,10 +307,67 @@ void incluirAluno(lista *alunos, lista *disciplinas) {
   printf("Disciplina: ");
   scanf("%s", sigla);
 
-  if (buscarItem(disciplinas, sigla, buscarDisciplina)) {
+  item *itemDisciplina = buscarItem(disciplinas, sigla, buscarDisciplina);
+  if (itemDisciplina) {
     aluno *a = itemAluno->atual;
+    disciplina *d = itemDisciplina->atual;
     strcpy(a->disciplina, sigla);
   } else {
     printf("Disciplina não encontrada\n");
   }
+}
+
+void gerenciarDisciplina(lista *disciplinas, lista *alunos) {
+  char sigla[4];
+  printf("Gerenciar disciplina: ");
+  scanf("%s", sigla);
+  item *i = buscarItem(disciplinas, sigla, buscarDisciplina);
+  if (i) {
+    disciplina *d = i->atual;
+    menuDisciplina(d, alunos);
+  }
+}
+
+void menuDisciplina(disciplina *d, lista *alunos) {
+  int opcao = -1;
+  while (opcao != 6) {
+    system("clear");
+    printf("\
+Gerenciando disciplina %s\n\
+Quantidade de alunos: %d\n\
+Opções:\n\
+1 Listar alunos\n\
+2 Remover aluno da disciplina\n\
+3 Atribuir nota a aluno\n\
+4 Atribuir faltas a aluno\n\
+5 Processar turmar\n\
+6 Voltar\n\
+Escolha uma opção: ",
+           d->nome, d->alunos);
+    scanf("%d", &opcao);
+    switch (opcao) {
+    case 1:
+      listarAlunos(d, alunos);
+      /* case 2: */
+      /* case 3: */
+      /* case 4: */
+      /* case 5: */
+    }
+  }
+}
+
+void listarAlunos(disciplina *d, lista *alunos) {
+  system("clear");
+  printf("Alunos de %s\n", d->nome);
+  printf("Matrícula | Nome | Faltas | Nota | Menção\n");
+  item *atual = alunos->inicio;
+  while (atual) {
+    aluno *a = atual->atual;
+    if (strcmp(d->nome, a->disciplina) == 0)
+      printf("%d\t%s\t%d\%\t%.2f\t%s\n", a->matricula, a->nome,
+             (int)a->faltas * 100, a->nota, a->mencao);
+    atual = atual->prox;
+  }
+  printf("Pressione enter para voltar.\n");
+  do getchar(); while (getchar() != '\n');
 }
