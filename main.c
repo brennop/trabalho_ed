@@ -32,13 +32,15 @@ typedef struct _lista {
 } lista;
 
 /* funções helpers para manipular listas */
-void inserirFinal(lista *LISTA, void *tad); /* insere tad no final de LISTA */
-void iterarLista(lista *LISTA,
-                 void (*f)(item *)); /* aplica (*f) em cada item da lista */
-item *buscarItem(lista *LISTA, void *chave,
-                 int (*f)(item *,
-                          void *)); /* busca chave em LISTA baseado em (*f) */
-void removerItem(lista *LISTA, item *ITEM); /* remove ITEM de LISTA */
+
+/* insere tad no final de LISTA */
+void inserirFinal(lista *LISTA, void *tad);
+/* aplica (*f) em cada item da lista */
+void iterarLista(lista *LISTA, void (*f)(item *));
+/* busca chave em LISTA baseado em (*f) */
+item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *));
+/* remove ITEM de LISTA */
+void removerItem(lista *LISTA, item *ITEM);
 
 /* funções para manipular o arquivo.txt */
 lista *lerLista();
@@ -79,31 +81,15 @@ int main() {
     system("clear");
 
     switch (option) {
-    case 0:
-      mostrarLista(alunos);
-      break;
-    case 1:
-      listarDisciplinas(disciplinas);
-      break;
-    case 2:
-      adicionarDisciplina(disciplinas);
-      break;
-    case 3:
-      removerDisciplina(disciplinas);
-      break;
-    case 5:
-      adicionarAluno(alunos);
-      break;
-    case 6:
-      removerAluno(alunos);
-      break;
-    case 7:
-      incluirAluno(alunos, disciplinas);
-      break;
+    case 0: mostrarLista(alunos); break;
+    case 1: listarDisciplinas(disciplinas); break;
+    case 2: adicionarDisciplina(disciplinas); break;
+    case 3: removerDisciplina(disciplinas); break;
+    case 5: adicionarAluno(alunos); break;
+    case 6: removerAluno(alunos); break;
+    case 7: incluirAluno(alunos, disciplinas); break;
     case 8:
-    case 9:
-      salvarLista(alunos);
-      break;
+    case 9: salvarLista(alunos); break;
     }
   }
   return 0;
