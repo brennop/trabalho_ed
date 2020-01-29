@@ -312,11 +312,11 @@ void removerAluno(lista *alunos, lista *disciplinas) {
 
   aluno *a = itemAluno->atual;
 
-  /* se aluno estiver em disciplina,
-   * decrementar alunos na disciplina */
-  item *id = buscarItem(disciplinas, a->disciplina, buscarDisciplina);
-  if (id)
-    ((disciplina *)id->atual)->alunos--;
+  if (*a->disciplina) {
+    printf("Aluno possui disciplina!\n");
+    return;
+  }
+
 
   /* remove aluno da lista
    * e libera espaço de memória */
