@@ -134,39 +134,26 @@ void iterarLista(lista *LISTA, void (*f)(item *)) {
   }
 }
 
-// Lê do arquivo como binário
-// deve ser mudada posteriormente
-// para ler do arquivo em texto
 lista *lerLista() {
   lista *l = (lista *)malloc(sizeof(lista));
   l->tam = 0;
   FILE *arquivo = fopen("alunos.txt", "r");
   if (arquivo) {
-    aluno *tmp = (aluno *)malloc(sizeof(aluno));
-    while (fscanf(arquivo, "%[^;];%d;%[^;];%[^;];%f;%f;%[^\n]\n", tmp->nome,
-                  &tmp->matricula, tmp->curso, tmp->disciplina, &tmp->faltas,
-                  &tmp->nota, tmp->mencao) != EOF) {
-
-      /* consome o '\n' do final da linha
-       * quando não há menção */
-      if(*tmp->mencao == '\0') fgetc(arquivo); 
+    char tmp[100];
+    while (fscanf(arquivo, "%s", tmp) != EOF) {
       aluno *a = (aluno *)malloc(sizeof(aluno));
-      *a = *tmp;
+      /* faz um parse do formato da linha */
+      sscanf(tmp, "%[^;];%d;%[^;];%[^;];%f;%f;%[^\n]", a->nome,
+                  &a->matricula, a->curso, a->disciplina, &a->faltas,
+                  &a->nota, a->mencao);
       inserirFinal(l, a);
-
-      /* limpa a menção para não ser copiada entre linhas */
-      *tmp->mencao = '\0';
     }
-    free(tmp);
     fclose(arquivo);
   }
-  
+
   return l;
 }
 
-// Salva no arquivo com binário
-// dever ser mudada posteriormente
-// para salvar como arquivo de texto
 void salvarLista(lista *LISTA) {
   FILE *arquivo = fopen("alunos.txt", "w");
   item *atual = LISTA->inicio;
@@ -182,7 +169,8 @@ void salvarLista(lista *LISTA) {
 
 void mostrarAluno(item *i) {
   aluno *a = i->atual;
-  printf("%s %d %s %s %f %f %s\n", a->nome, a->matricula, a->curso, a->disciplina, a->faltas, a->nota, a->mencao);
+  printf("%s %d %s %s %f %f %s\n", a->nome, a->matricula, a->curso,
+         a->disciplina, a->faltas, a->nota, a->mencao);
 }
 
 void mostrarLista(lista *LISTA) { iterarLista(LISTA, mostrarAluno); }
