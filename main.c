@@ -34,6 +34,7 @@ typedef struct _item {
 typedef struct _lista {
   item *inicio;
   item *final;
+  int tam;
 } lista;
 
 /* funções helpers para manipular listas */
@@ -68,6 +69,7 @@ void listarAlunos(disciplina *d, lista *alunos);           /* 1 */
 void removerAlunoDisciplina(disciplina *d, lista *alunos); /* 2 */
 void atribuirNota(disciplina *d, lista *alunos);           /* 3 */
 void atribuirFaltas(disciplina *d, lista *alunos);         /* 4 */
+void processarTurma(disciplina *d, lista *alunos);         /* 5 */
 
 int main() {
   // ler arquivo
@@ -121,6 +123,7 @@ void inserirFinal(lista *LISTA, void *tad) {
     LISTA->final->prox = i;
   }
   LISTA->final = i;
+  LISTA->tam++;
 }
 
 void iterarLista(lista *LISTA, void (*f)(item *)) {
@@ -136,17 +139,28 @@ void iterarLista(lista *LISTA, void (*f)(item *)) {
 // para ler do arquivo em texto
 lista *lerLista() {
   lista *l = (lista *)malloc(sizeof(lista));
-  FILE *arquivo = fopen("alunos.txt", "rb");
+  l->tam = 0;
+  FILE *arquivo = fopen("alunos.txt", "r");
   if (arquivo) {
     aluno *tmp = (aluno *)malloc(sizeof(aluno));
-    while (fread(tmp, sizeof(aluno), 1, arquivo)) {
+    while (fscanf(arquivo, "%[^;];%d;%[^;];%[^;];%f;%f;%[^\n]\n", tmp->nome,
+                  &tmp->matricula, tmp->curso, tmp->disciplina, &tmp->faltas,
+                  &tmp->nota, tmp->mencao) != EOF) {
+
+      /* consome o '\n' do final da linha
+       * quando não há menção */
+      if(*tmp->mencao == '\0') fgetc(arquivo); 
       aluno *a = (aluno *)malloc(sizeof(aluno));
       *a = *tmp;
       inserirFinal(l, a);
+
+      /* limpa a menção para não ser copiada entre linhas */
+      *tmp->mencao = '\0';
     }
     free(tmp);
     fclose(arquivo);
   }
+  
   return l;
 }
 
@@ -154,10 +168,13 @@ lista *lerLista() {
 // dever ser mudada posteriormente
 // para salvar como arquivo de texto
 void salvarLista(lista *LISTA) {
-  FILE *arquivo = fopen("alunos.txt", "wb");
+  FILE *arquivo = fopen("alunos.txt", "w");
   item *atual = LISTA->inicio;
   while (atual) {
-    fwrite(atual->atual, sizeof(aluno), 1, arquivo);
+    /* fwrite(atual->atual, sizeof(aluno), 1, arquivo); */
+    aluno *a = atual->atual;
+    fprintf(arquivo, "%s;%d;%s;%s;%f;%f;%s\n", a->nome, a->matricula, a->curso,
+            a->disciplina, a->faltas, a->nota, a->mencao);
     atual = atual->prox;
   }
   fclose(arquivo);
@@ -165,7 +182,7 @@ void salvarLista(lista *LISTA) {
 
 void mostrarAluno(item *i) {
   aluno *a = i->atual;
-  printf("%s %d %s %s\n", a->nome, a->matricula, a->curso, a->disciplina);
+  printf("%s %d %s %s %f %f %s\n", a->nome, a->matricula, a->curso, a->disciplina, a->faltas, a->nota, a->mencao);
 }
 
 void mostrarLista(lista *LISTA) { iterarLista(LISTA, mostrarAluno); }
@@ -378,6 +395,7 @@ Escolha uma opção: ",
     case 2: removerAlunoDisciplina(d, alunos); break;
     case 3: atribuirNota(d, alunos); break;
     case 4: atribuirFaltas(d, alunos); break;
+    case 5: processarTurma(d, alunos); break;
     case 6: return;
     }
   }
@@ -446,4 +464,11 @@ void atribuirFaltas(disciplina *d, lista *alunos) {
 
   printf("Faltas (%): ");
   scanf("%f", &a->faltas);
+}
+
+void processarTurma(disciplina *d, lista *alunos) {
+  printf("Informações de %s\n", d->nome);
+  printf("Curso | Matriculados | Aprovados | Reprovados\n");
+  printf("Pressione enter para voltar.\n");
+  enter();
 }
