@@ -56,7 +56,7 @@ typedef struct _lista {
 /* insere tad no final de LISTA */
 void inserirFinal(lista *LISTA, void *tad);
 /* aplica (*f) em cada item da lista */
-void iterarLista(lista *LISTA, void (*f)(item *, void *));
+void iterarLista(lista *LISTA, void (*f)(item *));
 /* busca chave em LISTA baseado em (*f) */
 item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *));
 /* remove ITEM de LISTA */
@@ -67,10 +67,11 @@ lista *lerLista();
 void salvarLista(lista *LISTA);
 void mostrarLista(lista *LISTA);
 lista *processarDisciplinas(lista *LISTA);
+int alunosSemDisciplina(lista *alunos);
 
 void listarDisciplinas(lista *LISTA);                        /* 1 */
 void adicionarDisciplina(lista *LISTA);                      /* 2 */
-void removerDisciplina(lista *LISTA);                        /* 3 */
+void removerDisciplina(lista *disciplinas, lista *alunos);   /* 3 */
 void semDisciplina(lista *LISTA);                            /* 4 */
 void adicionarAluno(lista *LISTA);                           /* 5 */
 void removerAluno(lista *alunos, lista *disciplinas);        /* 6 */
@@ -94,7 +95,7 @@ int main() {
   for (;;) {
     system("clear");
     printf("Olá Professor, \n");
-    printf("<X> alunos não estão matriculados. \n");
+    printf("%d alunos não estão matriculados. \n", alunosSemDisciplina(alunos));
     printf("O que deseja fazer: \n");
     printf("1 Listar disciplinas \n");
     printf("2 Adicionar disciplina \n");
@@ -113,7 +114,7 @@ int main() {
     case 0: mostrarLista(alunos); break;
     case 1: listarDisciplinas(disciplinas); break;
     case 2: adicionarDisciplina(disciplinas); break;
-    case 3: removerDisciplina(disciplinas); break;
+    case 3: removerDisciplina(disciplinas, alunos); break;
     case 4: semDisciplina(alunos); break;
     case 5: adicionarAluno(alunos); break;
     case 6: removerAluno(alunos, disciplinas); break;
@@ -139,10 +140,10 @@ void inserirFinal(lista *LISTA, void *tad) {
   LISTA->tam++;
 }
 
-void iterarLista(lista *LISTA, void (*f)(item *, void *)) {
+void iterarLista(lista *LISTA, void (*f)(item *)) {
   item *atual = LISTA->inicio;
   while (atual) {
-    (*f)(atual, NULL);
+    (*f)(atual);
     atual = atual->prox;
   }
 }
@@ -204,6 +205,10 @@ item *buscarItem(lista *LISTA, void *chave, int (*f)(item *, void *)) {
 }
 
 void removerItem(lista *LISTA, item *ITEM) {
+  if(ITEM == LISTA->inicio) {
+    LISTA->inicio = ITEM->prox;
+    return;
+  }
   item *anterior = LISTA->inicio;
   while (anterior->prox) {
     if (anterior->prox == ITEM) {
@@ -245,6 +250,17 @@ lista *processarDisciplinas(lista *LISTA) {
   return disciplinas;
 }
 
+int alunosSemDisciplina(lista *alunos) {
+  int t = 0;
+  item *atual = alunos->inicio;
+  while(atual) {
+    aluno *a = atual->atual;
+    t += *a->disciplina == '\0';
+    atual = atual->prox;
+  }
+  return t;
+}
+
 /* 1 */
 void listarDisciplinas(lista *disciplinas) {
   item *atual = disciplinas->inicio;
@@ -264,6 +280,7 @@ void adicionarDisciplina(lista *LISTA) {
   scanf("%s", sigla);
   if (buscarItem(LISTA, sigla, buscarDisciplina)) {
     printf("Disciplina já existente\n");
+    enter();
   } else {
     disciplina *d = (disciplina *)malloc(sizeof(disciplina));
     strcpy(d->nome, sigla);
@@ -273,17 +290,26 @@ void adicionarDisciplina(lista *LISTA) {
 }
 
 /* 3 */
-void removerDisciplina(lista *LISTA) {
+void removerDisciplina(lista *disciplinas, lista *alunos) {
   char sigla[4];
   printf("Adicionar disciplina\n");
   printf("Digite a sigla: ");
   scanf("%s", sigla);
-  item *i = buscarItem(LISTA, sigla, buscarDisciplina);
+  item *i = buscarItem(disciplinas, sigla, buscarDisciplina);
   if (i) {
-    removerItem(LISTA, i);
+    item *itemAluno = alunos->inicio;
+    while (itemAluno) { // TODO: refatorar
+      aluno *a = itemAluno->atual;
+      disciplina *d = i->atual;
+      if (strcmp(a->disciplina, d->nome) == 0)
+        *a->disciplina = '\0';
+      itemAluno = itemAluno->prox;
+    }
+    removerItem(disciplinas, i);
     free(i);
   } else {
     printf("Disciplina não existente\n");
+    enter();
   }
 }
 
@@ -333,6 +359,7 @@ void removerAluno(lista *alunos, lista *disciplinas) {
 
   if (itemAluno == NULL) {
     printf("Matrícula não encontrada\n");
+    enter();
     return;
   }
 
@@ -340,6 +367,7 @@ void removerAluno(lista *alunos, lista *disciplinas) {
 
   if (*a->disciplina) {
     printf("Aluno possui disciplina!\n");
+    enter();
     return;
   }
 
@@ -360,6 +388,7 @@ void incluirAluno(lista *alunos, lista *disciplinas) {
   item *itemAluno = buscarItem(alunos, &matricula, buscarMatricula);
   if (itemAluno == NULL) {
     printf("Matrícula não encontrada\n");
+    enter();
     return;
   }
   printf("Disciplina: ");
@@ -373,6 +402,7 @@ void incluirAluno(lista *alunos, lista *disciplinas) {
     d->alunos++;
   } else {
     printf("Disciplina não encontrada\n");
+    enter();
   }
 }
 
@@ -400,7 +430,7 @@ Opções:\n\
 2 Remover aluno da disciplina\n\
 3 Atribuir nota a aluno\n\
 4 Atribuir faltas a aluno\n\
-5 Processar turmar\n\
+5 Processar turma\n\
 6 Voltar\n\
 Escolha uma opção: ",
            d->nome, d->alunos);
@@ -425,8 +455,8 @@ void listarAlunos(disciplina *d, lista *alunos) {
   while (atual) {
     aluno *a = atual->atual;
     if (strcmp(d->nome, a->disciplina) == 0)
-      printf("%d\t%s\t%.0f\%\t%.2f\t%s\n", a->matricula, a->nome, a->faltas * 100,
-             a->nota, a->mencao);
+      printf("%d\t%s\t%.0f\%\t%.2f\t%s\n", a->matricula, a->nome,
+             a->faltas * 100, a->nota, a->mencao);
     atual = atual->prox;
   }
   enter();
@@ -444,8 +474,10 @@ void removerAlunoDisciplina(disciplina *d, lista *alunos) {
     aluno *a = i->atual;
     if (strcmp(a->disciplina, d->nome) == 0)
       *a->disciplina = '\0';
-  } else
+  } else {
     printf("Matrícula não encontrada\n");
+    enter();
+  }
 }
 
 /* 2.3 */
@@ -458,6 +490,7 @@ void atribuirNota(disciplina *d, lista *alunos) {
   item *i = buscarItem(alunos, &matricula, buscarMatricula);
   if (i == NULL) {
     printf("Matrícula não encontrada\n");
+    enter();
     return;
   }
   aluno *a = i->atual;
@@ -490,13 +523,13 @@ void atribuirFaltas(disciplina *d, lista *alunos) {
   item *i = buscarItem(alunos, &matricula, buscarMatricula);
   if (i == NULL) {
     printf("Matrícula não encontrada\n");
+    enter(); // TODO: golf
     return;
   }
   aluno *a = i->atual;
 
   printf("Faltas (%): ");
   scanf("%f", &a->faltas);
-  a->faltas /= 100;
   if (a->faltas >= 0.25)
     strcpy(a->mencao, "SR");
 }
