@@ -58,7 +58,7 @@ void adicionarDisciplina(lista *LISTA);                      /* 2 */
 void removerDisciplina(lista *LISTA);                        /* 3 */
 void semDisciplina(lista *LISTA);                            /* 4 */
 void adicionarAluno(lista *LISTA);                           /* 5 */
-void removerAluno(lista *LISTA);                             /* 6 */
+void removerAluno(lista *alunos, lista *disciplinas);        /* 6 */
 void incluirAluno(lista *alunos, lista *disciplinas);        /* 7 */
 void gerenciarDisciplina(lista *disciplinas, lista *alunos); /* 8 */
 
@@ -75,7 +75,7 @@ int main() {
   lista *alunos = lerLista();
   lista *disciplinas = processarDisciplinas(alunos);
 
-  for(;;) {
+  for (;;) {
     system("clear");
     printf("Olá Professor, \n");
     printf("<X> alunos não estão matriculados. \n");
@@ -98,8 +98,9 @@ int main() {
     case 1: listarDisciplinas(disciplinas); break;
     case 2: adicionarDisciplina(disciplinas); break;
     case 3: removerDisciplina(disciplinas); break;
+    case 4: semDisciplina(alunos); break;
     case 5: adicionarAluno(alunos); break;
-    case 6: removerAluno(alunos); break;
+    case 6: removerAluno(alunos, disciplinas); break;
     case 7: incluirAluno(alunos, disciplinas); break;
     case 8: gerenciarDisciplina(disciplinas, alunos); break;
     case 9: salvarLista(alunos); break;
@@ -261,7 +262,7 @@ void removerDisciplina(lista *LISTA) {
 
 void mostrarAlunoSemDisciplina(item *i) {
   aluno *a = i->atual;
-  if (a->disciplina[0] == '\0')
+  if (*a->disciplina == '\0')
     printf("%s %d %s\n", a->nome, a->matricula, a->curso);
 }
 
@@ -289,22 +290,33 @@ void adicionarAluno(lista *LISTA) {
 }
 
 int buscarMatricula(item *i, void *chave) {
-  aluno *a = i->atual;
-  return a->matricula == *(int *)chave;
+  return ((aluno *)i->atual)->matricula == *(int *)chave;
 }
 
-void removerAluno(lista *LISTA) {
+void removerAluno(lista *alunos, lista *disciplinas) {
   int matricula;
   printf("Remover aluno:\n");
   printf("Matrícula: ");
   scanf("%d", &matricula);
-  item *i = buscarItem(LISTA, &matricula, buscarMatricula);
-  if (i) {
-    removerItem(LISTA, i);
-    free(i);
-  } else {
+  item *itemAluno = buscarItem(alunos, &matricula, buscarMatricula);
+
+  if (itemAluno == NULL) {
     printf("Matrícula não encontrada\n");
+    return;
   }
+
+  aluno *a = itemAluno->atual;
+
+  /* se aluno estiver em disciplina,
+   * decrementar alunos na disciplina */
+  item *id = buscarItem(disciplinas, a->disciplina, buscarDisciplina);
+  if (id)
+    ((disciplina *)id->atual)->alunos--;
+
+  /* remove aluno da lista
+   * e libera espaço de memória */
+  removerItem(alunos, itemAluno);
+  free(itemAluno);
 }
 
 void incluirAluno(lista *alunos, lista *disciplinas) {
@@ -327,6 +339,7 @@ void incluirAluno(lista *alunos, lista *disciplinas) {
     aluno *a = itemAluno->atual;
     disciplina *d = itemDisciplina->atual;
     strcpy(a->disciplina, sigla);
+    d->alunos++;
   } else {
     printf("Disciplina não encontrada\n");
   }
